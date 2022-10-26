@@ -1,5 +1,5 @@
-import { Component } from 'react';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import { useState, useEffect } from 'react';
 
 import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
@@ -8,28 +8,23 @@ import { Loader } from './Loader/Loader';
 import { fetchImages } from '../services/api';
 import { ContainerStyle } from './App.styled';
 
-export class App extends Component {
-  state = {
-    page: 1,
-    searchQuery: '',
-    images: [],
-    isLoading: false,
-    showButton: false,
-  };
+export const App = () => {
+  const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showButton, setShowButton] = useState(false);
 
-  componentDidUpdate(prevProps, prevState) {
-    const searchQuery = this.state.searchQuery;
-    const page = this.state.page;
-    if (prevState.searchQuery !== searchQuery || prevState.page !== page) {
-      this.loadImages(searchQuery, page);
+  useEffect(() => {
+    if (searchQuery === '') {
+      return;
     }
-  }
+    loadImages(searchQuery, page);
+  }, [searchQuery, page]);
 
-  loadImages = async (searchQuery, page) => {
+  const loadImages = async (searchQuery, page) => {
     try {
-      this.setState({
-        isLoading: true,
-      });
+      setIsLoading(true);
 
       const responseData = await fetchImages(searchQuery, page);
 
@@ -39,7 +34,6 @@ export class App extends Component {
           return image;
         }
       );
-      console.log(newImages);
 
       if (newImages.length === 0) {
         Notify.failure(
@@ -49,47 +43,37 @@ export class App extends Component {
       }
       const numberOfPages = Math.ceil(responseData.total / 12);
 
-      this.setState({ showButton: numberOfPages > page ? true : false });
+      numberOfPages > page ? setShowButton(true) : setShowButton(false);
 
-      this.setState(prevState => ({
-        images: [...prevState.images, ...newImages],
-      }));
+      setImages(images => [...images, ...newImages]);
     } catch (error) {
       Notify.failure('Something went wrong. Please try again.');
     } finally {
-      this.setState({
-        isLoading: false,
-      });
+      setIsLoading(false);
     }
   };
 
-  onFormSubmit = searchQuery => {
+  const onFormSubmit = searchQuery => {
     if (searchQuery.trim().length === 0) {
       Notify.warning('Please enter a word for search');
       return;
     }
 
-    this.setState({
-      searchQuery,
-      page: 1,
-      images: [],
-    });
+    setSearchQuery(searchQuery);
+    setPage(1);
+    setImages([]);
   };
 
-  loadMore = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+  const loadMore = () => {
+    setPage(page => page + 1);
   };
 
-  render() {
-    const { isLoading, images, showButton } = this.state;
-
-    return (
-      <ContainerStyle>
-        <Searchbar onSubmit={this.onFormSubmit} />
-        {images.length > 0 && <ImageGallery images={this.state.images} />}
-        <Loader loading={isLoading} />
-        {showButton && <Button onClick={this.loadMore}>Load more</Button>}
-      </ContainerStyle>
-    );
-  }
-}
+  return (
+    <ContainerStyle>
+      <Searchbar onSubmit={onFormSubmit} />
+      {images.length > 0 && <ImageGallery images={images} />}
+      <Loader loading={isLoading} />
+      {showButton && <Button onClick={loadMore}>Load more</Button>}
+    </ContainerStyle>
+  );
+};
