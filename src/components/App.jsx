@@ -25,7 +25,8 @@ export const App = () => {
   const loadImages = async (searchQuery, page) => {
     try {
       setIsLoading(true);
-
+      setShowButton(false);
+            
       const responseData = await fetchImages(searchQuery, page);
 
       const newImages = responseData.hits.map(
