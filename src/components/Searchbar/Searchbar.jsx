@@ -1,4 +1,3 @@
-import { Component } from 'react';
 import { AiOutlineSearch } from 'react-icons/ai';
 import { PropTypes } from 'prop-types';
 
@@ -9,46 +8,38 @@ import {
   SearchFormButtonLabelStyle,
   SearchFormInputStyle,
 } from './Searchbar.styled';
+import { useState } from 'react';
 
-export class Searchbar extends Component {
-  state = {
-    inputValue: '',
-  };
+export const Searchbar = ({ onSubmit }) => {
+  const [inputValue, setInputValue] = useState('');
 
-  onInputChange = e => {
-    this.setState({ inputValue: e.target.value });
-  };
 
-  handleSubmit = e => {
+  const handleSubmit = e => {
     e.preventDefault();
-    const searchQuery = this.state.inputValue;
-    this.props.onSubmit(searchQuery);
-    this.setState({inputValue: ""})
+    onSubmit(inputValue);
+    setInputValue('');
   };
-  render() {
-    const inputValue = this.state.inputValue;
 
-    return (
-      <SearchbarStyle>
-        <SearchFormStyle onSubmit={this.handleSubmit}>
-          <SearchFormButtonStyle type="submit">
-            <SearchFormButtonLabelStyle>Search</SearchFormButtonLabelStyle>
-            <AiOutlineSearch size="24px" />
-          </SearchFormButtonStyle>
+  return (
+    <SearchbarStyle>
+      <SearchFormStyle onSubmit={handleSubmit}>
+        <SearchFormButtonStyle type="submit">
+          <SearchFormButtonLabelStyle>Search</SearchFormButtonLabelStyle>
+          <AiOutlineSearch size="24px" />
+        </SearchFormButtonStyle>
 
-          <SearchFormInputStyle
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-            value={inputValue}
-            onChange={this.onInputChange}
-          />
-        </SearchFormStyle>
-      </SearchbarStyle>
-    );
-  }
-}
+        <SearchFormInputStyle
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)          }
+        />
+      </SearchFormStyle>
+    </SearchbarStyle>
+  );
+};
 
 Searchbar.propTypes = {
   onChange: PropTypes.func,
